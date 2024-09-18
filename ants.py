@@ -14,7 +14,10 @@ class Anthill:
             self.json_data = json.load(file)[f'antshill_{file_number}']
             # print(self.json_data['Nodes'])
 
-        self.nodes = self.json_data["Nodes"]
+        self.nodes = {}
+        for node, value in self.json_data["Nodes"].items():
+            self.nodes[node] = value[0]
+
 
         # return json_data
 
@@ -68,33 +71,42 @@ class Anthill:
 
         self.all_paths = []
         dfs(start, [start])
-        for path in self.all_paths:
-            print(" -> ".join(path))
+        # for path in self.all_paths:
+        #     print(" -> ".join(path))
 
         return self.all_paths
 
     def init_movement(self, start='Sv', end='Sd'):
-        # shape is the amount of ants a node can contain
-        self.shape = self.json_data["shape"]
         # f is ants count
         self.f = self.json_data['f']
+        self.steps = 0
 
 
-        self.best_paths = self.path_selection()
+        # attributes self.best_paths list of list to the Instance
+        self.path_selection()
 
         self.nodes_population = dict.fromkeys(self.nodes, 0)
         self.nodes_population['Sv'] = self.f
 
-        graph = self.nodes
+        # graph = self.nodes
 
-        # while self.nodes_population['Sd'] != self.f:
-        #     self.movement()
+        while self.nodes_population['Sd'] != self.f:
+            self.movement()
 
     def movement(self):
-        pass
-        # for path in enumerate(self.best_paths):
-        #     # print(path)
-        #     path
+        print(self.nodes_population)
+        for path in [self.best_paths]:
+            for i, node in enumerate(path):
+                print(path)
+
+                self.nodes_population[node] -=1
+                self.nodes_population[path[i+1]] +=1
+
+
+        self.steps +=1
+        return
+
+
 
 
         # test = self.json_data.get("shape", [{}])[0]
@@ -108,21 +120,45 @@ class Anthill:
 
         for path in all_paths:
             score = 0
-            # score += size for larger_rooms, size in self.shape.keys()
             for node in path:
-                print(node)
-                print(self.shape)
-                if node in self.shape.keys():
-                    score += self.shape[node]
+                if self.json_data["Nodes"][node][1] != 1:
+                    score += self.json_data["Nodes"][node][1]
             all_paths_score.append(score)
 
-        print(all_paths_score)
+        temp_all_paths = []
+        while len(all_paths)>1:
+            all_same_len_paths = [path for path in all_paths if len(path) == len(all_paths[0])]
+
+            # Get the indices of these paths in the original list
+            indices_of_same_len_paths = [i for i, path in enumerate(all_paths) if len(path) == len(all_paths[0])]
+            all_same_len_scores = [all_paths_score[i] for i in indices_of_same_len_paths]
+
+            if len(all_same_len_paths) > 1 and all_same_len_scores[0] < max(all_same_len_scores):
+
+                max_index = all_paths_score.index(max(all_same_len_scores))
+
+                temp_all_paths.append(all_same_len_paths[max_index])
+                all_paths_score.pop(max_index)
+                all_paths.pop(max_index)
+
+            else:
+                temp_all_paths.append(all_paths[0])
+                all_paths_score.pop(0)
+                all_paths.pop(0)
+
+        # adding last remaining path separately
+        temp_all_paths.append(all_paths[0])
+        best_paths = temp_all_paths
+
 
         # only taking into account all the shortest paths and the one longer by one move at the moment
         # best_paths = [path for path in all_paths[1:] if len(path)<=len(all_paths[0])+1]
 
-        # to remove at some point
-        best_paths = all_paths[0]
+        for path in best_paths:
+            print(" -> ".join(path))
+
+        self.best_paths = best_paths[0] # [0:5]
+
 
 
     def make_brute_path(self):
@@ -133,17 +169,17 @@ class Anthill:
         # make the loop stop when reaching Sd
 
     def random_path(self, pos='Sv'):
+        pass
+        # print(self.nodes)
+        # available_nodes = self.nodes
 
-        print(self.nodes)
-        available_nodes = self.nodes
+        # while available_nodes:
 
-        while available_nodes:
-
-            if len(self.nodes[pos]) > 1:
-                for possibility in self.nodes[pos]: # add random
-                    available_nodes.remove(possibility)
-            else:
-                pass
+        #     if len(self.nodes[pos]) > 1:
+        #         for possibility in self.nodes[pos]: # add random
+        #             available_nodes.remove(possibility)
+        #     else:
+        #         pass
 
 
 if __name__ == "__main__":
