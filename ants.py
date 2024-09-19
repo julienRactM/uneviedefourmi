@@ -1,5 +1,7 @@
 # Python file
 import json
+import math
+import numpy as np
 
 #Creation de la représenation de la fourmillère
 
@@ -88,23 +90,38 @@ class Anthill:
         self.nodes_population = dict.fromkeys(self.nodes, 0)
         self.nodes_population['Sv'] = self.f
 
-        # graph = self.nodes
-
-        while self.nodes_population['Sd'] != self.f:
-            self.movement()
+        # self.movement()
 
     def movement(self):
         print(self.nodes_population)
+        self.best_paths = [self.best_paths] if len(self.best_paths) == 1 else self.best_paths
         for path in [self.best_paths]:
             for i, node in enumerate(path):
-                print(path)
+                # print(path)
 
-                self.nodes_population[node] -=1
-                self.nodes_population[path[i+1]] +=1
+                ## Indirect way to check if we're checking Sd or not
+                if len(path) >= i+2 and self.nodes_population[node] > 0:
+                    next_node_capacity = self.json_data['Nodes'][path[i+1]][1]
+                    ### NEED TO ADD A CHECK FOR MULTIPLE PATHS NOT CHEATING OR ATLEAST REVERSE CHECKING THAT IF
+                    ### CONTENANCE > MAX CAPACITY REVERT THE CHANGE WITH NODE i-1 getting the reverse increase aftercase
+
+
+                    available_ants = self.nodes_population[node]
+                    available_ants = available_ants if available_ants < next_node_capacity else next_node_capacity
+
+                    self.nodes_population[node] -= available_ants # NEXT SIZE
+                    self.nodes_population[path[i+1]] += available_ants
+                ### ADD NEXT NODE SIZE
+
 
 
         self.steps +=1
-        return
+        if self.nodes_population['Sd'] != self.f:
+            self.movement()
+        else:
+            print(self.f)
+            print(self.steps)
+            return
 
 
 
@@ -151,15 +168,40 @@ class Anthill:
         best_paths = temp_all_paths
 
 
+
         # only taking into account all the shortest paths and the one longer by one move at the moment
         # best_paths = [path for path in all_paths[1:] if len(path)<=len(all_paths[0])+1]
 
         for path in best_paths:
             print(" -> ".join(path))
 
-        self.best_paths = best_paths[0] # [0:5]
+        self.best_paths = best_paths
+
+        self.best_paths = self.calculate_flow()
 
 
+    def calculate_flow(self):
+        temp_paths = []
+        for i, path in enumerate(self.best_paths):
+            # !if path:
+            # path.remove('Sv')
+            # path.remove('Sd')
+
+            node_flow = []
+            for node in path:
+                node_flow.append(self.json_data['Nodes'][node][1])
+
+            print(self.best_paths)
+            temp_paths.append([path, np.min(node_flow)])
+            # 1 is adjusting for the last node to Sd move
+            temp_paths[i].append(math.floor((len(path)-1)/temp_paths[i][1]))
+
+            # print("path",temp_paths[i][0])
+            # print("flow", temp_paths[i][1])
+            # print("number of steps needed", temp_paths[i][2])
+
+        temp_paths.sort(key=lambda x: x[2])
+        print(temp_paths)
 
     def make_brute_path(self):
         count = 0
@@ -188,3 +230,4 @@ if __name__ == "__main__":
     # anthill.make_paths()
     # anthill.random_path()
     anthill.init_movement()
+    # anthill.calculate_flow()
