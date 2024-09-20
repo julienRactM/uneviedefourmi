@@ -8,17 +8,22 @@ import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
 
-class Anthill:
-    def __init__(self, file_number = 4):
+from PIL import Image
+import io
 
-        with open('data/updated_dict.json', 'r') as file: # antshill.json updated_dict.json
+class Anthill:
+    def __init__(self, file_path="data/antshill.json", file_number = 4):
+
+        with open(file_path, 'r') as file: # antshill.json updated_dict.json
             self.json_data = json.load(file)[f'antshill_{file_number}']
 
         self.nodes = {}
         for node, value in self.json_data["Nodes"].items():
             self.nodes[node] = value[0]
 
+        self.f = self.json_data["f"]
         self.shape = {key: value[1] for key, value in self.json_data["Nodes"].items()}
+        self.capacities = {key: value[1] for key, value in self.json_data["Nodes"].items()}
 
         # return json_data
 
@@ -244,7 +249,6 @@ class Anthill:
         self.best_paths = best_paths
         self.best_paths_informations = self.calculate_flow()
         self.best_paths= [entry[0] for entry in self.best_paths_informations]
-        print(self.best_paths[0])
 
     def calculate_flow(self):
         temp_paths = []
@@ -264,17 +268,139 @@ class Anthill:
 
         return temp_paths
 
+    # Initialiser les positions des fourmis
+    def initialize_positions(self, start):
+        return {f"f{i+1}": start for i in range(self.f)}
+
+    # Fonction pour afficher tous les plus courts chemins
+    def display_all_shortest_paths(self, paths):
+        print("Les chemins les plus courts sont :")
+        for path in paths:
+            print(" -> ".join(path))
+
+
+    # Fonction pour déplacer les fourmis tout en respectant la capacité des chambres
+    def move_ants_with_multiple_paths(self,positions, paths):
+        new_positions = positions.copy()
+
+        # Calculer l'occupation des chambres sur tous les chemins
+        room_occupancy = {node: list(positions.values()).count(node) for path in paths for node in path}
+
+        for ant, pos in positions.items():
+            if pos != paths[0][-1]:  # Si la fourmi n'est pas encore arrivée à destination
+                for path in paths:
+                    if pos in path and pos != path[-1]:
+                        next_pos = path[path.index(pos) + 1]  # Prochaine position dans le chemin
+                        # Vérifier si la prochaine chambre peut accueillir plus de fourmis
+                        if room_occupancy[next_pos] < self.capacities[next_pos]:  # Respecter la capacité
+
+                            new_positions[ant] = next_pos  # Déplacer la fourmi
+                            room_occupancy[pos] -= 1  # Mettre à jour l'occupation de la chambre actuelle
+                            room_occupancy[next_pos] += 1  # Mettre à jour l'occupation de la prochaine chambre
+                            break  # Dès que la fourmi trouve un chemin valide, on arrête la recherche pour cette fourmi
+        return new_positions
+
+    # Fonction pour dessiner le graphe avec l'occupation des chambres
+    def draw_graph_with_occupancy(self, G, capacities, positions, step, seed=12):
+        plt.figure(figsize=(10, 6))
+
+        # Dessiner le graphe avec une disposition déterministe
+        pos = nx.spring_layout(G, seed=seed)  # Positionnement des nœuds avec une graine pour la reproductibilité
+        nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=2000, font_size=16, font_weight='bold', edge_color='gray')
+
+        # Annoter les capacités des chambres
+        labels = {node: f"{capacities[node]}\n({list(positions.values()).count(node)})" for node in G.nodes()}
+        nx.draw_networkx_labels(G, pos, labels=labels, font_size=12, font_color='black')
+
+        plt.title(f"Étape {step}: Occupation des chambres")
+
+        # Sauvegarder la figure en tant qu'image dans un buffer
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        plt.close()
+
+        return Image.open(buf)
+
+    # Fonction pour simuler les déplacements des fourmis avec plusieurs chemins possibles
+    def simulate_ants_movement_with_multiple_paths(self, start, end):
+        # 1. Calculer et afficher tous les chemins les plus courts
+        paths = self.best_paths
+        print(paths)
+        self.display_all_shortest_paths(paths)
+        capacities = self.capacities
+
+        # 2. Simuler le déplacement des fourmis sur plusieurs chemins
+        positions = self.initialize_positions(start)  # Initialiser les positions des fourmis
+        step = 1
+
+        images = []
+        while any(pos != end for pos in positions.values()):  # Tant que toutes les fourmis ne sont pas arrivées
+
+            # Déplacer les fourmis tout en respectant la capacité sur plusieurs chemins
+            positions = self.move_ants_with_multiple_paths(positions, paths)
+
+            print(f"\n+++ Étape {step} +++")
+            for ant, pos in positions.items():
+                print(f"{ant} est dans {pos}")
+
+
+            # Ajouter une capacité infinie pour la chambre de destination (Sd)
+            capacities["Sd"] = float('inf')
+
+
+            G = nx.Graph()
+            for node, neighbors in self.nodes.items():
+                for neighbor in neighbors:
+                    G.add_edge(node, neighbor)
+            # Dessiner le graphe avec l'occupation des chambres et sauvegarder l'image
+            img = self.draw_graph_with_occupancy(G, capacities, positions, step)
+            images.append(img)
+
+            step += 1
+
+        # Dernière étape où toutes les fourmis sont arrivées
+        print(f"\n+++ Étape {step} +++")
+        for ant, pos in positions.items():
+            print(f"{ant} est arrivée")
+
+        # Dessiner le graphe final et sauvegarder l'image
+        img = self.draw_graph_with_occupancy(G, capacities, positions, step)
+        images.append(img)
+
+        # Créer le GIF à partir des images
+        images[0].save('try.gif', save_all=True, append_images=images[1:], optimize=False, duration=1000, loop=0)
+
+
+# Extraire les nœuds et les capacités
+
+
+
+# Exemple : Simuler le déplacement de 10 fourmis de 'Sv' à 'Sd' avec capacités sur plusieurs chemins
+
+
 
 if __name__ == "__main__":
     anthill = Anthill(file_number=3)
-    # anthill.visualize()
-    # anthill.make_paths()
-    # anthill.random_path()
+    anthill.init_movement()
+    anthill.simulate_ants_movement_with_multiple_paths("Sv", "Sd")
 
-    # anthill.calculate_flow()
+
+
+    # print("Les chemins sont:", anthill.best_paths)
+    # print("Nombre de fourmis:", anthill.f)
+    # print("Connexions des chambres:", anthill.nodes)
+    # print("Capacités des chambres:", anthill.capacities)
+
+
+
+
+
+
+
 
     # print(anthill.shape)
-    anthill.add_new_graph_from_txt("fichiers txt/fourmiliere_sept.txt")
-    print(anthill.json_data)
-    anthill.init_movement()
-    print("best path found:", anthill.best_paths[0])
+    # anthill.add_new_graph_from_txt("fichiers txt/fourmiliere_sept.txt")
+    # print(anthill.json_data)
+    # anthill.init_movement()
+    # print("best path found:", anthill.best_paths[0])
