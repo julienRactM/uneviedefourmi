@@ -1,0 +1,25 @@
+17
+##start
+start 1 3
+p1n1 0 0
+p1n2 0 0
+p2n1 0 0
+p2n2 0 0
+p3n1 0 0
+p3n2 0 0
+p4n1 0 0
+p4n2 0 0
+##end
+end 3 5
+start-p1n1
+p1n1-p1n2
+p1n2-end
+start-p2n1
+p2n1-p2n2
+p2n2-end
+start-p3n1
+p3n1-p3n2
+p3n2-end
+start-p4n1
+p4n1-p4n2
+p4n2-end

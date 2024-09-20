@@ -1,0 +1,23 @@
+10
+##start
+start 1 3
+p1n1 0 0
+p2n1 0 0
+p2n2 0 0
+p3n1 0 0
+p3n2 0 0
+p3n3 0 0
+##end
+end 3 5
+#**route 01**
+start-p1n1
+p1n1-end
+#**route 02**
+start-p2n1
+p2n1-p2n2
+p2n2-end
+#**route 03**
+start-p3n1
+p3n1-p3n2
+p3n2-p3n3
+p3n3-end
