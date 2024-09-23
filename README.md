@@ -17,6 +17,7 @@ Un trou, des tunnels et des salles
 ## Exemple de graphe d'une fourmilière
 
 Etapes de déplacement des fourmis au sein d'une fourmilière 
+![image d'une fourmillière](antshill.gif)
 
 
 ## Prerequisites
