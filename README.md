@@ -1,79 +1,38 @@
-# uneviedefourmi M1 Project La Plateforme
+# Une vie de fourmi
 
-## To do list
+Un trou, des tunnels et des salles
 
--
+---
 
-- Use different colors for multiple paths w/ a loop
+  Ce projet vise à explorer  des stratégies pour coordonner efficacement le mouvement des fourmis à travers la fourmilière, en tenant compte de la topologie du réseau de salles et des contraintes de déplacement.
+L'objectif principal est de déplacer toutes les fourmis du vestibule au dortoir en empruntant le plus court chemin .
+ 
+--
 
-- fix color palette on graphs
+![image d'une fourmillière](fourmillière.jpg)
 
-- save in an image folder the gif for each antshill
+## Exemple de graphe d'une fourmilière
 
-- ajouter capture d'écran à chaque étape
-
-- Retourne erreur lors du dl du fichier txt si il manque Sv Sd ou s'il n'y a pas de chemin
-
-- rajouter formule pour calculer nombre de chemin à emprunter par rapport à la distance totale du chemin et la prévision du nombre d'étape
-
-
-
-### Bonus
-
-- Version jeu éducatif
+Etapes de déplacement des fourmis au sein d'une fourmilière 
+![image d'une fourmillière](antshill.gif)
 
 
-### Notes temporaires A DELETE
-Avancée max par étape
-Quelle proportion de la tâche accomplie t on en envoyant le max de débit dans un tel chemin ?
+## Prerequisites
+```
+- pip install -r requirement.txt
+- pip install networkX
+- pip install matplotlib
+```
 
-point de conflit - embouteillage
+## Note
 
+ Il est possible d'ajouter le nombre de fourmillières avec la fonction **add_new_graph_from_text()**
 
+ ## Authors
 
+ - Julien
+ - Amina
+ - Tanjona
 
+ 
 
-1. Envoie le max dans le meilleur chemin(1)
-2. Si nombre d'étape nécessaire pour terminer chemin(2) > quantité début d'étape fourmies - débit
-
-
-starting f 30
-f step+1 for path 1 would mean 27 for path 2 to take into consideration
-
-3 - 3 - 3 - 3  (    9     )
-1 - 1 - 1 - 1 - 1 - 1 - 1 (  2  )
-1 - 1 - 1 - 1 - 1 - 1 - 1 - 1 - 1
-
-
-LEN DIFF : 3
-FOR PATHS Meilleurs que path actuel
-  IF len(new_path) - max( parmis lens(previous_paths)) * flow_rate >=
-                 (    4     )                  *     3
-
-
-previous f/2+len diff
-
-
-if previous f diff(3)/
-
-
-for path in paths[1:]
-  if débit 1* (len(chemin1)-1) + débit 2* (len(chemin2)-1) < f de début d'étape/2:
-    déplacer fourmi 3e chemin
-
-
-for path in paths[1:]
-  if débit 1* (len(chemin1)-1) e< f de début d'étape/2:
-    déplacer fourmi 3e chemin
-
-
-
-
-
-
-
-
-
-
-if f début d'étape - len(chemin2)*débit chemin2 - len(chemin1)*débit chemin1 > 0:
-  on envoie dans le 2e chemin
