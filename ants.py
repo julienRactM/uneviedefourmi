@@ -304,13 +304,22 @@ class Anthill:
     def draw_graph_with_occupancy(self, G, capacities, positions, step, seed=12):
         plt.figure(figsize=(10, 6))
 
+        plt.gca().set_facecolor('#151b23')
+
+        # Dessiner le graphe avec une disposition déterministe
+        pos = nx.spring_layout(G, seed=seed, k=1)  # Positionnement des nœuds avec une graine pour la reproductibilité
+        color_map = ["#548CAC"] + ["#7edb32"]*(len(pos)-2) + ["#1ea4d9"]
+
         # Dessiner le graphe avec une disposition déterministe
         pos = nx.spring_layout(G, seed=seed)  # Positionnement des nœuds avec une graine pour la reproductibilité
-        nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=2000, font_size=16, font_weight='bold', edge_color='gray')
+        nx.draw(G, pos, with_labels=True, node_color=color_map, node_size=2300  , font_size=16, font_weight='bold', edge_color='gray')
+        # Changing value temporarily for img
+        capacities["Sv"] = "∞"
+        capacities["Sd"] = "∞"
 
         # Annoter les capacités des chambres
-        labels = {node: f"{capacities[node]}\n({list(positions.values()).count(node)})" for node in G.nodes()}
-        nx.draw_networkx_labels(G, pos, labels=labels, font_size=12, font_color='black')
+        labels = {node: f"{capacities[node]}\n\n({list(positions.values()).count(node)})" for node in G.nodes()}
+        nx.draw_networkx_labels(G, pos, labels=labels, font_size=14, font_color='black')
 
         plt.title(f"Étape {step}: Occupation des chambres")
 
@@ -319,6 +328,10 @@ class Anthill:
         plt.savefig(buf, format='png')
         buf.seek(0)
         plt.close()
+
+
+        capacities["Sv"] = float('inf')
+        capacities["Sd"] = float('inf')
 
         return Image.open(buf)
 
@@ -369,7 +382,7 @@ class Anthill:
         images.append(img)
 
         # Créer le GIF à partir des images
-        images[0].save('try.gif', save_all=True, append_images=images[1:], optimize=False, duration=1000, loop=0)
+        images[0].save('antshill.gif', save_all=True, append_images=images[1:], optimize=False, duration=1000, loop=0)
 
 
 # Extraire les nœuds et les capacités
@@ -381,11 +394,9 @@ class Anthill:
 
 
 if __name__ == "__main__":
-    anthill = Anthill(file_number=3)
+    anthill = Anthill(file_number=4)
     anthill.init_movement()
     anthill.simulate_ants_movement_with_multiple_paths("Sv", "Sd")
-
-
 
     # print("Les chemins sont:", anthill.best_paths)
     # print("Nombre de fourmis:", anthill.f)
@@ -400,7 +411,7 @@ if __name__ == "__main__":
 
 
     # print(anthill.shape)
-    # anthill.add_new_graph_from_txt("fichiers txt/fourmiliere_sept.txt")
+    anthill.add_new_graph_from_txt("fichiers txt/fourmiliere_sept.txt")
     # print(anthill.json_data)
     # anthill.init_movement()
     # print("best path found:", anthill.best_paths[0])
